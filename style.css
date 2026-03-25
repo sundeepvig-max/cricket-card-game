@@ -1,0 +1,158 @@
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: rgba(20, 25, 40, 0.6);
+    --card-border: rgba(0, 229, 255, 0.2);
+    --accent: #00e5ff;
+    --accent-glow: rgba(0, 229, 255, 0.4);
+    --win: #00ff66;
+    --loss: #ff0055;
+    --text-main: #f0f6fc;
+    --text-muted: #8b949e;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-main);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #161b29 0%, var(--bg-color) 100%);
+}
+
+#app {
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    padding: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.screen.active {
+    opacity: 1; pointer-events: all; z-index: 10;
+}
+
+h1, h2, h3 { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+.title-container {
+    flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+}
+.title-container h1 {
+    font-size: 3rem; font-weight: 900;
+    background: linear-gradient(to right, var(--accent), #b000ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px var(--accent-glow); margin-bottom: 10px; line-height: 1.1;
+}
+
+.btn {
+    background: linear-gradient(135deg, var(--accent) 0%, #0077ff 100%);
+    color: #fff; border: none; padding: 15px 30px; border-radius: 30px;
+    font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700;
+    cursor: pointer; box-shadow: 0 8px 20px rgba(0, 119, 255, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s; width: 100%; max-width: 300px;
+}
+.btn:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0, 119, 255, 0.4); }
+
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 15px; border-bottom: 1px solid var(--card-border); margin-bottom: 15px;
+}
+.score-badge {
+    background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: bold;
+}
+
+.battle-info { text-align: center; margin-bottom: 10px; }
+.stat-highlight {
+    font-size: 1.4rem; color: var(--accent); font-weight: 900;
+    text-shadow: 0 0 10px var(--accent-glow); letter-spacing: 1px;
+}
+
+.arena { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0; }
+.ai-area { display: flex; justify-content: center; align-items: center; min-height: 160px; }
+.player-area { display: flex; flex-direction: column; height: 45%; }
+.hand-container {
+    display: flex; overflow-x: auto; gap: 15px; padding: 10px 0 20px 0;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.hand-container::-webkit-scrollbar { display: none; }
+
+.card-wrapper { flex: 0 0 calc(52% - 10px); scroll-snap-align: center; perspective: 1000px; }
+.card {
+    width: 100%; aspect-ratio: 2.5/3.5; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 16px; padding: 12px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: flex; flex-direction: column; position: relative;
+    transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer;
+}
+.card:active { transform: scale(0.95); }
+
+.card-face {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    backface-visibility: hidden; border-radius: 16px; padding: 12px; display: flex; flex-direction: column;
+}
+.card-front { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.4)); border: 1px solid var(--card-border); }
+.card-back {
+    background: repeating-linear-gradient(45deg, #161b29, #161b29 10px, #0b0f19 10px, #0b0f19 20px);
+    border: 1px solid var(--accent); transform: rotateY(180deg);
+    display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px var(--accent-glow) inset;
+}
+.card-back::after { content: 'PL'; font-size: 2.5rem; font-weight: 900; color: rgba(255,255,255,0.1); }
+.card.flipped { transform: rotateY(180deg); }
+
+.card-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 10px; }
+.card-title { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.2;}
+.card-subtitle { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; margin-top: 2px; }
+
+.stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.8rem; }
+.stat-row.highlighted {
+    color: var(--accent); font-weight: bold; transform: scale(1.05);
+    background: rgba(0, 229, 255, 0.1); padding: 2px 4px; border-radius: 4px;
+}
+.stat-val { font-weight: 700; font-family: monospace; font-size: 0.9rem;}
+
+.ai-card-wrapper { width: 140px; }
+
+.versus-arena { display: flex; justify-content: space-around; align-items: center; flex: 1; margin: 10px 0; }
+.versus-card { width: 42%; }
+.versus-card .card { cursor: default; }
+
+.vs-badge {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    background: var(--accent); color: #000; width: 40px; height: 40px; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; font-weight: 900; font-style: italic;
+    z-index: 5; box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.turn-result-text {
+    font-size: 2rem; font-weight: 900; text-align: center; margin: 5px 0 15px 0; min-height: 48px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.glow-win .card { box-shadow: 0 0 25px var(--win); border-color: var(--win); }
+.glow-loss .card { box-shadow: 0 0 25px var(--loss); border-color: var(--loss); }
+
+.full-center { display: flex;flex-direction: column; justify-content: center; align-items: center; flex: 1; text-align: center; }
+
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
