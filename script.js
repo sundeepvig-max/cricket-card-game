@@ -237,10 +237,9 @@ function createCardHTML(card, role, isFlipped, highlightStat) {
         return `<div class="stat-row ${hl}"><span>${k}</span><span class="stat-val">${card.stats[k]}</span></div>`;
     }).join('');
 
-    let avatarSrc = `https://api.dicebear.com/7.x/micah/svg?seed=${encodeURIComponent(card.name)}&backgroundColor=0b0f19`;
-    if (card.name === "Sachin Tendulkar") avatarSrc = 'assets/sachin.png';
-    else if (card.name === "Shane Warne") avatarSrc = 'assets/warne.png';
-    else if (card.name === "Jacques Kallis") avatarSrc = 'assets/kallis.png';
+    let formattedName = card.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    let avatarSrc = `assets/${formattedName}.png`;
+    let fallbackSrc = `https://api.dicebear.com/7.x/micah/svg?seed=${encodeURIComponent(card.name)}&backgroundColor=0b0f19`;
 
     return `
         <div class="card ${isFlipped ? 'flipped' : ''}">
@@ -250,7 +249,7 @@ function createCardHTML(card, role, isFlipped, highlightStat) {
                     <div class="card-subtitle">${role.toUpperCase()}</div>
                 </div>
                 <div class="card-avatar-container">
-                    <img src="${avatarSrc}" class="card-avatar" alt="${card.name}">
+                    <img src="${avatarSrc}" onerror="this.onerror=null; this.src='${fallbackSrc}';" class="card-avatar" alt="${card.name}">
                 </div>
                 <div class="card-stats">${statsHtml}</div>
             </div>
