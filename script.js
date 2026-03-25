@@ -222,7 +222,7 @@ window.startTurn = function() {
 
     let bestIdx = 0, high = 0;
     state.aiHand.forEach((c, i) => {
-        if(c && c.stats[state.battleStat.aiKey] > high) { high = c.stats[state.battleStat.aiKey]; bestIdx = i; }
+        if(!c.consumed && c.stats[state.battleStat.aiKey] > high) { high = c.stats[state.battleStat.aiKey]; bestIdx = i; }
     });
     state.aiSelectedCardIndex = bestIdx;
 
@@ -253,7 +253,13 @@ function createCardHTML(card, role, isFlipped, highlightStat) {
 
 function renderTurnGameplay() {
     let handHtml = state.playerHand.map((c, i) => {
-        if (!c) return `<div class="card-wrapper" style="opacity:0"></div>`;
+        if (c.consumed) {
+            return `
+                <div class="card-wrapper consumed-card">
+                    ${createCardHTML(c, state.playerRole, false, state.battleStat.playerKey)}
+                </div>
+            `;
+        }
         return `
             <div class="card-wrapper" onclick="playCard(${i})">
                 ${createCardHTML(c, state.playerRole, false, state.battleStat.playerKey)}
@@ -316,8 +322,8 @@ function renderTurnReveal() {
     if(win === 'player') state.currentRoundScore.player++;
     else if(win === 'ai') state.currentRoundScore.ai++;
 
-    state.aiHand[state.aiSelectedCardIndex] = null;
-    state.playerHand[state.playerSelectedCardIndex] = null;
+    state.aiHand[state.aiSelectedCardIndex].consumed = true;
+    state.playerHand[state.playerSelectedCardIndex].consumed = true;
 
     let resText = win === 'player' ? '<span style="color:var(--win)">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss)">AI WINS</span>' : 'TIE';
 

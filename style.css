@@ -60,7 +60,7 @@ h1, h2, h3 { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 .title-container h1 {
     font-size: 3rem; font-weight: 900;
     background: linear-gradient(to right, var(--accent), #b000ff);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     text-shadow: 0 0 20px var(--accent-glow); margin-bottom: 10px; line-height: 1.1;
 }
 
@@ -200,4 +200,17 @@ h1, h2, h3 { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
 button:disabled {
     opacity: 0.5; filter: grayscale(1); cursor: not-allowed; box-shadow: none; transform: none !important;
+}
+
+.consumed-card {
+    opacity: 0.4;
+    filter: grayscale(1);
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: scale(0.9) !important;
+}
+
+.consumed-card .card { 
+    box-shadow: none !important; 
+    border-color: #555 !important; 
 }
