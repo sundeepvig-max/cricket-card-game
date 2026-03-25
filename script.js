@@ -122,82 +122,51 @@ window.startRound = function() {
         state.requiredDraftCount = 3;
     }
     
-    // Randomize pool order a bit so it's not always same
-    state.pool = state.pool.sort(() => 0.5 - Math.random());
-    renderDraftScreen();
+    state.playerHand = getRandomCards(state.pool, state.requiredDraftCount);
+    renderPackScreen();
 };
 
-window.renderDraftScreen = function() {
-    let poolHtml = state.pool.map((c, i) => {
-        let isSel = state.draftSelection.includes(i) ? 'selected' : '';
-        return `
-            <div class="draft-card-inner ${isSel}" onclick="toggleDraft(${i})">
-                ${createCardHTML(c, state.playerRole, false, '')}
-                ${state.draftSelection.includes(i) ? '<div class="draft-badge">✓</div>' : ''}
-            </div>
-        `;
-    }).join('');
-
+window.renderPackScreen = function() {
     renderScreen(`
-        <div class="screen view-draft" style="animation: slideUp 0.4s ease forwards">
-            <div class="header">
-                <h3 style="font-size: 1.2rem">Draft Your ${state.playerRole.toUpperCase()}Deck</h3>
-                <div class="score-badge">${state.draftSelection.length} / ${state.requiredDraftCount}</div>
+        <div class="screen view-pack" style="animation: slideUp 0.4s ease forwards">
+            <h2 style="margin: 20px 0; color: var(--accent); text-align: center;">YOUR ${state.playerRole.toUpperCase()} PACK</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px;">Tap the pack to reveal your legends for Round ${state.round}!</p>
+            <div class="full-center" style="position:relative; height: 50vh;">
+                <div class="pack-container" onclick="openPack(this)">
+                    <div style="text-align:center">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🌟</div>
+                        <h2 style="color: #000; font-weight: 900; text-transform: uppercase; font-style: italic; font-size: 2rem; text-shadow: 0 0 10px rgba(255,255,255,0.8)">LEGENDS<br>PACK</h2>
+                        <div style="color: #333; font-weight: bold; margin-top: 10px; font-size: 1.1rem; filter: drop-shadow(0 0 5px #fff)">${state.requiredDraftCount} CARDS</div>
+                    </div>
+                </div>
             </div>
-            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center; margin-bottom: 15px;">
-                Select ${state.requiredDraftCount} legends to form your hand for Round ${state.round}
-            </p>
-            <div class="draft-grid">
-                ${poolHtml}
-            </div>
-            <div class="fixed-bottom-bar">
-                <button class="btn" style="width:90%" 
-                    ${state.draftSelection.length === state.requiredDraftCount ? '' : 'disabled'} 
-                    onclick="submitDraft()">CONFIRM DECK</button>
+            <div id="packOverlay" class="pack-opening-overlay">
+                <h3 style="color: var(--accent); margin-bottom: 30px; margin-top: 30px; font-size: 1.5rem">YOUR SQUAD REVEALED</h3>
+                <div class="revealed-cards" id="revealedCardsGrid"></div>
+                <button class="btn" style="margin-top: 30px; margin-bottom: 30px; animation: popIn 0.5s ease 2s both; position: relative" onclick="renderRoundIntro()">CONTINUE TO BATTLE</button>
             </div>
         </div>
     `);
 };
 
-window.toggleDraft = function(idx) {
-    let pos = state.draftSelection.indexOf(idx);
-    let cardEls = document.querySelectorAll('.draft-card-inner');
-    let cardEl = cardEls[idx];
-
-    if(pos >= 0) {
-        state.draftSelection.splice(pos, 1);
-        if (cardEl) {
-            cardEl.classList.remove('selected');
-            let badge = cardEl.querySelector('.draft-badge');
-            if (badge) badge.remove();
-        }
-    } else {
-        if(state.draftSelection.length < state.requiredDraftCount) {
-            state.draftSelection.push(idx);
-            if (cardEl) {
-                cardEl.classList.add('selected');
-                cardEl.insertAdjacentHTML('beforeend', '<div class="draft-badge">✓</div>');
-            }
-        }
-    }
+window.openPack = function(packEl) {
+    if(packEl.classList.contains('shake')) return;
+    packEl.classList.add('shake');
     
-    let draftCountEl = document.querySelector('.score-badge');
-    if (draftCountEl) draftCountEl.innerText = `${state.draftSelection.length} / ${state.requiredDraftCount}`;
-    
-    let btn = document.querySelector('.fixed-bottom-bar button');
-    if (btn) {
-        if (state.draftSelection.length === state.requiredDraftCount) {
-            btn.removeAttribute('disabled');
-        } else {
-            btn.setAttribute('disabled', 'true');
-        }
-    }
-};
+    if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
 
-window.submitDraft = function() {
-    if(state.draftSelection.length !== state.requiredDraftCount) return;
-    state.playerHand = state.draftSelection.map(i => ({...state.pool[i], id: Math.random().toString(36).substr(2, 9)}));
-    renderRoundIntro();
+    setTimeout(() => {
+        let overlay = document.getElementById('packOverlay');
+        let grid = document.getElementById('revealedCardsGrid');
+        if(overlay) overlay.classList.add('active');
+        
+        let cardsHtml = state.playerHand.map((c, i) => `
+            <div class="card-wrapper pack-card-drop" style="animation-delay: ${0.2 + (i*0.2)}s; margin-bottom: 5px">
+                ${createCardHTML(c, state.playerRole, false, '')}
+            </div>
+        `).join('');
+        if(grid) grid.innerHTML = cardsHtml;
+    }, 800);
 };
 
 function getStatKeys(role) {
@@ -359,36 +328,77 @@ function renderTurnReveal() {
     state.aiHand.push(state.aiHand.splice(state.aiSelectedCardIndex, 1)[0]);
     state.playerHand.push(state.playerHand.splice(state.playerSelectedCardIndex, 1)[0]);
 
-    let resText = win === 'player' ? '<span style="color:var(--win)">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss)">AI WINS</span>' : 'TIE';
-
     renderScreen(`
         <div class="screen view-gameplay">
             <div class="header">
                 <h3>Turn Result</h3>
                 <div class="score-badge">You ${state.currentRoundScore.player} - ${state.currentRoundScore.ai} AI</div>
             </div>
-            <div class="battle-info">
+            <div class="battle-info" style="z-index: 20; position: relative">
                 <p style="color:var(--text-muted); font-size:0.9rem;">Battle Stat: <span style="color:var(--accent); font-weight:bold">${state.battleStat.display}</span></p>
             </div>
-            <div class="turn-result-text" style="animation: popIn 0.5s ease">
-                ${resText}
-            </div>
-            <div class="versus-arena">
-                <div class="card-wrapper versus-card ${win === 'player' ? 'glow-win' : ''}" style="animation: slideUp 0.5s ease; transform: scale(0.9)">
-                    <p style="text-align:center; font-size:0.75rem; margin-bottom:5px; color: var(--text-muted)">YOU (${pVal})</p>
-                    ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
+            
+            <div class="clash-arena">
+                <div class="clash-explosion" id="clashExplosion"></div>
+                
+                <div id="aiClashCard" class="card-wrapper clash-card clash-ai-pos">
+                     <div style="position:absolute; width:100%; text-align:center; top:-25px; font-weight:bold; color:var(--text-muted); z-index: 20">AI</div>
+                     ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
                 </div>
-                <div class="vs-badge">VS</div>
-                <div class="card-wrapper versus-card ${win === 'ai' ? 'glow-loss' : ''}" style="animation: slideUp 0.5s ease; transform: scale(0.9)">
-                    <p style="text-align:center; font-size:0.75rem; margin-bottom:5px; color: var(--text-muted)">AI (${aVal})</p>
-                    ${createCardHTML(aiCard, aiRole, false, state.battleStat.aiKey)}
+                
+                <div id="pClashCard" class="card-wrapper clash-card clash-player-pos">
+                     <div style="position:absolute; width:100%; text-align:center; bottom:-25px; font-weight:bold; color:var(--accent); z-index: 20">YOU</div>
+                     ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
                 </div>
             </div>
-            <div style="text-align: center; margin-top: 5px; margin-bottom: 20px;">
+            
+            <div id="turnResultUI" style="text-align: center; opacity: 0; transition: opacity 0.5s; position: relative; z-index: 20; margin-top: -10px">
+                <div id="turnResultText" class="turn-result-text" style="margin-bottom: 20px"></div>
                 <button class="btn" style="padding: 12px 30px;" onclick="nextTurn()">CONTINUE</button>
             </div>
         </div>
     `);
+
+    // Animation Timings
+    setTimeout(() => {
+        let aiDom = document.getElementById('aiClashCard');
+        if(aiDom) aiDom.querySelector('.card').classList.remove('flipped'); // AI reveals card
+        
+        setTimeout(() => {
+            let pDom = document.getElementById('pClashCard');
+            let expl = document.getElementById('clashExplosion');
+            
+            if(pDom && aiDom) {
+                pDom.classList.remove('clash-player-pos');
+                pDom.classList.add('clash-smash-player');
+                pDom.style.setProperty('--r', '-5deg');
+                
+                aiDom.classList.remove('clash-ai-pos');
+                aiDom.classList.add('clash-smash-ai');
+                aiDom.style.setProperty('--r', '5deg');
+                
+                if (win === 'player') {
+                    pDom.classList.add('glow-win');
+                    pDom.style.zIndex = "11";
+                } else if (win === 'ai') {
+                    aiDom.classList.add('glow-loss');
+                    aiDom.style.zIndex = "11";
+                }
+            }
+            if(expl) expl.classList.add('boom');
+            if(navigator.vibrate) navigator.vibrate([80, 40, 100]);
+            
+            setTimeout(() => {
+                let resUI = document.getElementById('turnResultUI');
+                let resText = document.getElementById('turnResultText');
+                if(resText) {
+                    resText.innerHTML = win === 'player' ? '<span style="color:var(--win); font-size: 2rem">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss); font-size: 2rem">AI WINS</span>' : '<span style="font-size: 2rem">TIE</span>';
+                }
+                if(resUI) resUI.style.opacity = '1';
+            }, 600);
+            
+        }, 600);
+    }, 400);
 }
 
 window.nextTurn = function() {

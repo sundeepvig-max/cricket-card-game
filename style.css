@@ -218,3 +218,29 @@ button:disabled {
     box-shadow: none !important; 
     border-color: #555 !important; 
 }
+
+/* Card Pack Animations */
+.pack-container { width: 220px; height: 320px; background: linear-gradient(135deg, #ffd700, #ff8c00); border-radius: 15px; position: relative; cursor: pointer; box-shadow: 0 10px 30px rgba(255, 140, 0, 0.5); display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; transition: transform 0.2s; border: 3px solid #ffeeb5; overflow: hidden; }
+.pack-container::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,255,255,0) 40%, rgba(255,255,255,0)); transform: rotate(30deg); animation: foilShimmer 3s infinite linear; pointer-events: none; }
+@keyframes foilShimmer { 0% { transform: translateY(-50%) translateX(-50%) rotate(30deg); } 100% { transform: translateY(50%) translateX(50%) rotate(30deg); } }
+.pack-container.shake { animation: crazyShake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes crazyShake { 10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); } 20%, 80% { transform: translate3d(4px, 0, 0) rotate(2deg) scale(1.05); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0) rotate(-4deg) scale(1.1); } 40%, 60% { transform: translate3d(8px, 0, 0) rotate(4deg) scale(1.1); } }
+.pack-opening-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; overflow-y: auto; padding: 20px 0;}
+.pack-opening-overlay.active { opacity: 1; pointer-events: auto; }
+.revealed-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; perspective: 1000px; padding: 20px; }
+.pack-card-drop { animation: staggerDropIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+@keyframes staggerDropIn { 0% { opacity: 0; transform: translateY(-80px) rotateY(-180deg) scale(0.5); } 100% { opacity: 1; transform: translateY(0) rotateY(0deg) scale(1); } }
+
+/* Battle Clash Animations */
+.clash-arena { position: relative; width: 100%; height: 420px; display: flex; justify-content: center; align-items: center; overflow: visible; margin-bottom: 20px;}
+.clash-card { position: absolute; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.clash-player-pos { top: 220px; left: 50%; transform: translateX(-50%) scale(0.8); z-index: 5; }
+.clash-ai-pos { top: -20px; left: 50%; transform: translateX(-50%) scale(0.8); z-index: 4; }
+
+.clash-smash-player { top: 120px; transform: translateX(-50%) rotate(-5deg) scale(0.95); z-index: 10; animation: smashImpact 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.clash-smash-ai { top: 70px; transform: translateX(-50%) rotate(5deg) scale(0.95); z-index: 9; animation: smashImpact 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+@keyframes smashImpact { 0% { transform: translateX(-50%) scale(1.2); filter: drop-shadow(0 0 20px #fff); } 100% { transform: translateX(-50%) rotate(var(--r, 0deg)) scale(1.0); filter: drop-shadow(0 0 0px #fff); } }
+.clash-explosion { position: absolute; top: 150px; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,165,0,0.8) 40%, rgba(0,0,0,0) 70%); border-radius: 50%; z-index: 1; pointer-events: none; opacity: 0; }
+.clash-explosion.boom { animation: boomAnim 0.6s ease-out forwards; }
+@keyframes boomAnim { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0); filter: brightness(2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2); filter: brightness(1); } }
