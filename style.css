@@ -226,9 +226,10 @@ button:disabled {
 @keyframes miniShake { 0%, 100% { transform: scale(1) rotate(0deg); } 25% { transform: scale(1.05) rotate(-3deg); } 50% { transform: scale(1.05) rotate(3deg); } 75% { transform: scale(1.05) rotate(-3deg); } }
 
 /* Redesign card back to look like a foil pack when inside pack grid */
-.pack-foil-back { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; border: 2px solid #ffeeb5 !important; box-shadow: inset 0 0 15px rgba(255,255,255,0.5) !important; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-.pack-foil-back::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,255,255,0) 40%, rgba(255,255,255,0)); transform: rotate(30deg); animation: foilShimmer 3s infinite linear; pointer-events: none; }
+.pack-mini-grid .card-back { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; border: 2px solid #ffeeb5 !important; box-shadow: inset 0 0 15px rgba(255,255,255,0.5) !important; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.pack-mini-grid .card-back::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,255,255,0) 40%, rgba(255,255,255,0)); transform: rotate(30deg); animation: foilShimmer 3s infinite linear; pointer-events: none; }
 @keyframes foilShimmer { 0% { transform: translateY(-50%) translateX(-50%) rotate(30deg); } 100% { transform: translateY(50%) translateX(50%) rotate(30deg); } }
+.pack-mini-grid .card-back::before { content: 'TAP 🌟'; z-index: 5; font-weight: 900; color: #333; font-size: 1.2rem; background: #fff; padding: 5px 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: 10px; }
 
 /* Battle Clash Flex Layout */
 .clash-arena { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; overflow: visible; margin-bottom: 20px;}
