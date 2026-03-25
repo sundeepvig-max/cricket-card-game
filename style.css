@@ -196,10 +196,10 @@ h1, h2, h3 { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 }
 
 .fixed-bottom-bar {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 500px; padding: 15px;
+    position: sticky; bottom: 0; width: 100%; padding: 15px;
     background: linear-gradient(to top, var(--bg-color) 80%, transparent);
     display: flex; justify-content: center; z-index: 20;
+    margin-top: auto;
 }
 
 button:disabled {
