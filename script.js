@@ -351,20 +351,20 @@ function renderTurnReveal() {
                 <p style="color:var(--text-muted); font-size:0.9rem;">Battle Stat: <span style="color:var(--accent); font-weight:bold; font-size: 1.2rem">${state.battleStat.display}</span></p>
             </div>
             
-            <div class="clash-arena" style="height: auto; gap: 30px; margin-top: 20px; position: relative">
+            <div class="clash-arena" style="margin-top: 10px; margin-bottom: 20px;">
                 <div id="vsOrb" class="clash-center-vs">VS</div>
                 
-                <div id="aiClashCard" class="clash-card-container clash-ai-start">
-                     <div class="card-wrapper" style="transform: scale(0.9)">
-                         <div style="text-align:center; font-weight:bold; color:var(--text-muted); margin-bottom: 5px; font-size: 0.9rem">AI (${aVal})</div>
-                         ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
+                <div id="pClashCard" class="clash-card-container clash-player-start">
+                     <div class="card-wrapper" style="transform: scale(0.85); width: 100%">
+                         ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
+                         <div style="text-align:center; font-weight:bold; color:var(--accent); margin-top: 5px; font-size: 0.9rem">YOU (${pVal})</div>
                      </div>
                 </div>
                 
-                <div id="pClashCard" class="clash-card-container clash-player-start">
-                     <div class="card-wrapper" style="transform: scale(0.9)">
-                         ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
-                         <div style="text-align:center; font-weight:bold; color:var(--accent); margin-top: 5px; font-size: 0.9rem">YOU (${pVal})</div>
+                <div id="aiClashCard" class="clash-card-container clash-ai-start">
+                     <div class="card-wrapper" style="transform: scale(0.85); width: 100%">
+                         ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
+                         <div style="text-align:center; font-weight:bold; color:var(--text-muted); margin-top: 5px; font-size: 0.9rem">AI (${aVal})</div>
                      </div>
                 </div>
             </div>
