@@ -1,22 +1,22 @@
 const DATA = {
     batsmen: [
-        { name: "Sachin Tendulkar", stats: { Power: 80, Technique: 99, Aggression: 85, Composure: 95, Experience: 100 }},
-        { name: "Sir Viv Richards", stats: { Power: 95, Technique: 90, Aggression: 100, Composure: 85, Experience: 90 }},
+        { name: "Sachin Tendulkar", stats: { Power: 80, Technique: 99, Aggression: 85, Composure: 95, Experience: 99 }},
+        { name: "Sir Viv Richards", stats: { Power: 95, Technique: 90, Aggression: 99, Composure: 85, Experience: 90 }},
         { name: "Virat Kohli", stats: { Power: 85, Technique: 95, Aggression: 90, Composure: 92, Experience: 95 }},
         { name: "AB de Villiers", stats: { Power: 95, Technique: 92, Aggression: 95, Composure: 88, Experience: 90 }},
         { name: "Brian Lara", stats: { Power: 85, Technique: 96, Aggression: 88, Composure: 90, Experience: 94 }},
         { name: "Ricky Ponting", stats: { Power: 88, Technique: 92, Aggression: 90, Composure: 94, Experience: 96 }},
-        { name: "MS Dhoni", stats: { Power: 92, Technique: 85, Aggression: 88, Composure: 100, Experience: 95 }},
-        { name: "Don Bradman", stats: { Power: 85, Technique: 100, Aggression: 95, Composure: 98, Experience: 90 }},
+        { name: "MS Dhoni", stats: { Power: 92, Technique: 85, Aggression: 88, Composure: 99, Experience: 95 }},
+        { name: "Don Bradman", stats: { Power: 85, Technique: 99, Aggression: 95, Composure: 98, Experience: 90 }},
         { name: "K. Sangakkara", stats: { Power: 82, Technique: 95, Aggression: 80, Composure: 92, Experience: 94 }},
         { name: "Rohit Sharma", stats: { Power: 94, Technique: 90, Aggression: 92, Composure: 88, Experience: 92 }},
         { name: "Rahul Dravid", stats: { Power: 75, Technique: 98, Aggression: 70, Composure: 99, Experience: 95 }},
         { name: "Matthew Hayden", stats: { Power: 98, Technique: 85, Aggression: 96, Composure: 82, Experience: 90 }},
-        { name: "Virender Sehwag", stats: { Power: 96, Technique: 80, Aggression: 100, Composure: 80, Experience: 92 }},
+        { name: "Virender Sehwag", stats: { Power: 96, Technique: 80, Aggression: 99, Composure: 80, Experience: 92 }},
         { name: "Steve Smith", stats: { Power: 80, Technique: 96, Aggression: 82, Composure: 94, Experience: 88 }},
         { name: "Kane Williamson", stats: { Power: 78, Technique: 97, Aggression: 75, Composure: 96, Experience: 88 }},
         { name: "Joe Root", stats: { Power: 76, Technique: 95, Aggression: 78, Composure: 92, Experience: 86 }},
-        { name: "Chris Gayle", stats: { Power: 100, Technique: 75, Aggression: 98, Composure: 75, Experience: 94 }},
+        { name: "Chris Gayle", stats: { Power: 99, Technique: 75, Aggression: 98, Composure: 75, Experience: 94 }},
         { name: "Hashim Amla", stats: { Power: 80, Technique: 94, Aggression: 82, Composure: 92, Experience: 88 }},
         { name: "Sunil Gavaskar", stats: { Power: 70, Technique: 98, Aggression: 70, Composure: 96, Experience: 96 }},
         { name: "David Warner", stats: { Power: 92, Technique: 85, Aggression: 95, Composure: 80, Experience: 88 }}
@@ -31,7 +31,7 @@ const DATA = {
         { name: "Brett Lee", stats: { "Pace & Turn": 98, Accuracy: 85, Aggression: 95, Composure: 82, Experience: 90 }},
         { name: "Dale Steyn", stats: { "Pace & Turn": 96, Accuracy: 92, Aggression: 98, Composure: 85, Experience: 92 }},
         { name: "Anil Kumble", stats: { "Pace & Turn": 88, Accuracy: 96, Aggression: 88, Composure: 95, Experience: 95 }},
-        { name: "Shoaib Akhtar", stats: { "Pace & Turn": 100, Accuracy: 80, Aggression: 100, Composure: 80, Experience: 88 }},
+        { name: "Shoaib Akhtar", stats: { "Pace & Turn": 99, Accuracy: 80, Aggression: 99, Composure: 80, Experience: 88 }},
         { name: "Richard Hadlee", stats: { "Pace & Turn": 90, Accuracy: 98, Aggression: 85, Composure: 94, Experience: 95 }},
         { name: "Waqar Younis", stats: { "Pace & Turn": 97, Accuracy: 85, Aggression: 96, Composure: 82, Experience: 92 }},
         { name: "Shaun Pollock", stats: { "Pace & Turn": 85, Accuracy: 97, Aggression: 80, Composure: 95, Experience: 94 }},
@@ -161,14 +161,37 @@ window.renderDraftScreen = function() {
 
 window.toggleDraft = function(idx) {
     let pos = state.draftSelection.indexOf(idx);
+    let cardEls = document.querySelectorAll('.draft-card-inner');
+    let cardEl = cardEls[idx];
+
     if(pos >= 0) {
         state.draftSelection.splice(pos, 1);
+        if (cardEl) {
+            cardEl.classList.remove('selected');
+            let badge = cardEl.querySelector('.draft-badge');
+            if (badge) badge.remove();
+        }
     } else {
         if(state.draftSelection.length < state.requiredDraftCount) {
             state.draftSelection.push(idx);
+            if (cardEl) {
+                cardEl.classList.add('selected');
+                cardEl.insertAdjacentHTML('beforeend', '<div class="draft-badge">✓</div>');
+            }
         }
     }
-    renderDraftScreen();
+    
+    let draftCountEl = document.querySelector('.score-badge');
+    if (draftCountEl) draftCountEl.innerText = `${state.draftSelection.length} / ${state.requiredDraftCount}`;
+    
+    let btn = document.querySelector('.fixed-bottom-bar button');
+    if (btn) {
+        if (state.draftSelection.length === state.requiredDraftCount) {
+            btn.removeAttribute('disabled');
+        } else {
+            btn.setAttribute('disabled', 'true');
+        }
+    }
 };
 
 window.submitDraft = function() {
@@ -331,6 +354,10 @@ function renderTurnReveal() {
 
     state.aiHand[state.aiSelectedCardIndex].consumed = true;
     state.playerHand[state.playerSelectedCardIndex].consumed = true;
+    
+    // Bubble consumed cards to the end of the hand to natively reposition them in the UI!
+    state.aiHand.push(state.aiHand.splice(state.aiSelectedCardIndex, 1)[0]);
+    state.playerHand.push(state.playerHand.splice(state.playerSelectedCardIndex, 1)[0]);
 
     let resText = win === 'player' ? '<span style="color:var(--win)">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss)">AI WINS</span>' : 'TIE';
 
