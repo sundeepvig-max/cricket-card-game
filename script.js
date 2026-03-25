@@ -127,46 +127,59 @@ window.startRound = function() {
 };
 
 window.renderPackScreen = function() {
+    state.packsOpened = 0;
+    
+    let packHtml = state.playerHand.map((c, i) => `
+        <div id="packWrapper-${i}" class="card-wrapper" onclick="openMiniPack(${i})">
+            ${createCardHTML(c, state.playerRole, true, '')}
+        </div>
+    `).join('');
+
     renderScreen(`
-        <div class="screen view-pack" style="animation: slideUp 0.4s ease forwards">
-            <h2 style="margin: 20px 0; color: var(--accent); text-align: center;">YOUR ${state.playerRole.toUpperCase()} PACK</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px;">Tap the pack to reveal your legends for Round ${state.round}!</p>
-            <div class="full-center" style="position:relative; height: 50vh;">
-                <div class="pack-container" onclick="openPack(this)">
-                    <div style="text-align:center">
-                        <div style="font-size: 3rem; margin-bottom: 10px;">🌟</div>
-                        <h2 style="color: #000; font-weight: 900; text-transform: uppercase; font-style: italic; font-size: 2rem; text-shadow: 0 0 10px rgba(255,255,255,0.8)">LEGENDS<br>PACK</h2>
-                        <div style="color: #333; font-weight: bold; margin-top: 10px; font-size: 1.1rem; filter: drop-shadow(0 0 5px #fff)">${state.requiredDraftCount} CARDS</div>
-                    </div>
-                </div>
+        <div class="screen view-pack" style="animation: slideUp 0.4s ease forwards; overflow-y: auto; padding-bottom: 50px">
+            <div class="header" style="justify-content: center; flex-direction: column; align-items: center; padding-bottom: 10px;">
+                <h3 style="color: var(--accent); margin-bottom: 5px; font-size: 1.2rem">OPEN PACKS</h3>
+                <div class="score-badge" id="packCounter">0 / ${state.requiredDraftCount}</div>
             </div>
-            <div id="packOverlay" class="pack-opening-overlay">
-                <h3 style="color: var(--accent); margin-bottom: 30px; margin-top: 30px; font-size: 1.5rem">YOUR SQUAD REVEALED</h3>
-                <div class="revealed-cards" id="revealedCardsGrid"></div>
-                <button class="btn" style="margin-top: 30px; margin-bottom: 30px; animation: popIn 0.5s ease 2s both; position: relative" onclick="renderRoundIntro()">CONTINUE TO BATTLE</button>
+            
+            <p style="text-align: center; color: var(--text-muted); margin-top: 15px; margin-bottom: 25px;">Reveal your legends for Round ${state.round}!</p>
+            
+            <div class="pack-mini-grid">
+                ${packHtml}
+            </div>
+            
+            <div id="continueBtnContainer" style="text-align: center; margin-top: 30px; opacity: 0; pointer-events: none; transition: all 0.5s ease">
+                <button class="btn" style="padding: 12px 30px;" onclick="renderRoundIntro()">CONTINUE TO BATTLE</button>
             </div>
         </div>
     `);
 };
 
-window.openPack = function(packEl) {
-    if(packEl.classList.contains('shake')) return;
-    packEl.classList.add('shake');
+window.openMiniPack = function(idx) {
+    let wrapper = document.getElementById(`packWrapper-${idx}`);
+    if (!wrapper) return;
+    let card = wrapper.querySelector('.card');
     
-    if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-
+    if(!card.classList.contains('flipped') || wrapper.classList.contains('shake')) return;
+    
+    wrapper.classList.add('shake');
+    if(navigator.vibrate) navigator.vibrate([50]);
+    
     setTimeout(() => {
-        let overlay = document.getElementById('packOverlay');
-        let grid = document.getElementById('revealedCardsGrid');
-        if(overlay) overlay.classList.add('active');
+        card.classList.remove('flipped');
         
-        let cardsHtml = state.playerHand.map((c, i) => `
-            <div class="card-wrapper pack-card-drop" style="animation-delay: ${0.2 + (i*0.2)}s; margin-bottom: 5px">
-                ${createCardHTML(c, state.playerRole, false, '')}
-            </div>
-        `).join('');
-        if(grid) grid.innerHTML = cardsHtml;
-    }, 800);
+        state.packsOpened++;
+        let counter = document.getElementById('packCounter');
+        if (counter) counter.innerText = `${state.packsOpened} / ${state.requiredDraftCount}`;
+        
+        if (state.packsOpened === state.requiredDraftCount) {
+            let btnC = document.getElementById('continueBtnContainer');
+            if (btnC) {
+                btnC.style.opacity = '1';
+                btnC.style.pointerEvents = 'auto';
+            }
+        }
+    }, 400);
 };
 
 function getStatKeys(role) {
@@ -335,70 +348,66 @@ function renderTurnReveal() {
                 <div class="score-badge">You ${state.currentRoundScore.player} - ${state.currentRoundScore.ai} AI</div>
             </div>
             <div class="battle-info" style="z-index: 20; position: relative">
-                <p style="color:var(--text-muted); font-size:0.9rem;">Battle Stat: <span style="color:var(--accent); font-weight:bold">${state.battleStat.display}</span></p>
+                <p style="color:var(--text-muted); font-size:0.9rem;">Battle Stat: <span style="color:var(--accent); font-weight:bold; font-size: 1.2rem">${state.battleStat.display}</span></p>
             </div>
             
-            <div class="clash-arena">
-                <div class="clash-explosion" id="clashExplosion"></div>
+            <div class="clash-arena" style="height: auto; gap: 30px; margin-top: 20px; position: relative">
+                <div id="vsOrb" class="clash-center-vs">VS</div>
                 
-                <div id="aiClashCard" class="card-wrapper clash-card clash-ai-pos">
-                     <div style="position:absolute; width:100%; text-align:center; top:-25px; font-weight:bold; color:var(--text-muted); z-index: 20">AI</div>
-                     ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
+                <div id="aiClashCard" class="clash-card-container clash-ai-start">
+                     <div class="card-wrapper" style="transform: scale(0.9)">
+                         <div style="text-align:center; font-weight:bold; color:var(--text-muted); margin-bottom: 5px; font-size: 0.9rem">AI (${aVal})</div>
+                         ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
+                     </div>
                 </div>
                 
-                <div id="pClashCard" class="card-wrapper clash-card clash-player-pos">
-                     <div style="position:absolute; width:100%; text-align:center; bottom:-25px; font-weight:bold; color:var(--accent); z-index: 20">YOU</div>
-                     ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
+                <div id="pClashCard" class="clash-card-container clash-player-start">
+                     <div class="card-wrapper" style="transform: scale(0.9)">
+                         ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
+                         <div style="text-align:center; font-weight:bold; color:var(--accent); margin-top: 5px; font-size: 0.9rem">YOU (${pVal})</div>
+                     </div>
                 </div>
             </div>
             
-            <div id="turnResultUI" style="text-align: center; opacity: 0; transition: opacity 0.5s; position: relative; z-index: 20; margin-top: -10px">
-                <div id="turnResultText" class="turn-result-text" style="margin-bottom: 20px"></div>
+            <div id="turnResultUI" style="text-align: center; opacity: 0; transition: opacity 0.5s; position: relative; z-index: 20; margin-top: 10px">
+                <div id="turnResultText" class="turn-result-text" style="margin-bottom: 10px"></div>
                 <button class="btn" style="padding: 12px 30px;" onclick="nextTurn()">CONTINUE</button>
             </div>
         </div>
     `);
 
-    // Animation Timings
     setTimeout(() => {
-        let aiDom = document.getElementById('aiClashCard');
-        if(aiDom) aiDom.querySelector('.card').classList.remove('flipped'); // AI reveals card
+        let aiCon = document.getElementById('aiClashCard');
+        let pCon = document.getElementById('pClashCard');
+        
+        if(aiCon) aiCon.classList.replace('clash-ai-start', 'clash-impact-ai');
+        if(pCon) pCon.classList.replace('clash-player-start', 'clash-impact-player');
         
         setTimeout(() => {
-            let pDom = document.getElementById('pClashCard');
-            let expl = document.getElementById('clashExplosion');
-            
-            if(pDom && aiDom) {
-                pDom.classList.remove('clash-player-pos');
-                pDom.classList.add('clash-smash-player');
-                pDom.style.setProperty('--r', '-5deg');
-                
-                aiDom.classList.remove('clash-ai-pos');
-                aiDom.classList.add('clash-smash-ai');
-                aiDom.style.setProperty('--r', '5deg');
-                
-                if (win === 'player') {
-                    pDom.classList.add('glow-win');
-                    pDom.style.zIndex = "11";
-                } else if (win === 'ai') {
-                    aiDom.classList.add('glow-loss');
-                    aiDom.style.zIndex = "11";
-                }
-            }
-            if(expl) expl.classList.add('boom');
-            if(navigator.vibrate) navigator.vibrate([80, 40, 100]);
+            let aiCrd = aiCon.querySelector('.card');
+            if(aiCrd) aiCrd.classList.remove('flipped');
             
             setTimeout(() => {
-                let resUI = document.getElementById('turnResultUI');
-                let resText = document.getElementById('turnResultText');
-                if(resText) {
-                    resText.innerHTML = win === 'player' ? '<span style="color:var(--win); font-size: 2rem">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss); font-size: 2rem">AI WINS</span>' : '<span style="font-size: 2rem">TIE</span>';
-                }
-                if(resUI) resUI.style.opacity = '1';
-            }, 600);
-            
-        }, 600);
-    }, 400);
+                let vsOrb = document.getElementById('vsOrb');
+                if(vsOrb) vsOrb.classList.add('boom');
+                if(navigator.vibrate) navigator.vibrate([80, 40, 100]);
+                
+                let pWrapper = pCon.querySelector('.card');
+                let aWrapper = aiCon.querySelector('.card');
+                
+                if (win === 'player' && pWrapper) { pWrapper.style.boxShadow = "0 0 25px var(--win)"; pWrapper.style.borderColor = "var(--win)"; }
+                else if (win === 'ai' && aWrapper) { aWrapper.style.boxShadow = "0 0 25px var(--loss)"; aWrapper.style.borderColor = "var(--loss)"; }
+
+                setTimeout(() => {
+                    let resUI = document.getElementById('turnResultUI');
+                    let resText = document.getElementById('turnResultText');
+                    if(resText) resText.innerHTML = win === 'player' ? '<span style="color:var(--win); font-size: 2rem">YOU WIN!</span>' : win === 'ai' ? '<span style="color:var(--loss); font-size: 2rem">AI WINS</span>' : '<span style="font-size: 2rem">TIE</span>';
+                    if(resUI) resUI.style.opacity = '1';
+                }, 500);
+
+            }, 600); 
+        }, 500); 
+    }, 100);
 }
 
 window.nextTurn = function() {
