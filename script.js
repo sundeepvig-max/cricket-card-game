@@ -128,35 +128,44 @@ window.startRound = function() {
 
 window.renderPackScreen = function() {
     state.packsOpened = 0;
-    
-    let packHtml = state.playerHand.map((c, i) => `
-        <div id="packWrapper-${i}" class="card-wrapper" onclick="openMiniPack(${i})">
-            ${createCardHTML(c, state.playerRole, true, '')}
-        </div>
-    `).join('');
+    renderSinglePack();
+};
 
+window.renderSinglePack = function() {
+    if(state.packsOpened >= state.requiredDraftCount) {
+        renderRoundIntro();
+        return;
+    }
+    
+    let c = state.playerHand[state.packsOpened];
+    
     renderScreen(`
-        <div class="screen view-pack" style="animation: slideUp 0.4s ease forwards; overflow-y: auto; padding-bottom: 50px">
+        <div class="screen view-pack" style="animation: slideUp 0.4s ease forwards; overflow-y: auto;">
             <div class="header" style="justify-content: center; flex-direction: column; align-items: center; padding-bottom: 10px;">
-                <h3 style="color: var(--accent); margin-bottom: 5px; font-size: 1.2rem">OPEN PACKS</h3>
-                <div class="score-badge" id="packCounter">0 / ${state.requiredDraftCount}</div>
+                <h3 style="color: var(--accent); margin-bottom: 5px; font-size: 1.2rem">OPEN PACK ${state.packsOpened + 1}/${state.requiredDraftCount}</h3>
             </div>
             
-            <p style="text-align: center; color: var(--text-muted); margin-top: 15px; margin-bottom: 25px;">Reveal your legends for Round ${state.round}!</p>
+            <p style="text-align: center; color: var(--text-muted); margin-top: 15px; margin-bottom: 25px;">Tap the pack to reveal your legend!</p>
             
-            <div class="pack-mini-grid">
-                ${packHtml}
+            <div class="full-center" style="position:relative; height: 45vh;">
+                <div class="pack-mini-grid" style="transform: scale(1.3)">
+                    <div id="packWrapper" class="card-wrapper" onclick="openSinglePack()">
+                        ${createCardHTML(c, state.playerRole, true, '')}
+                    </div>
+                </div>
             </div>
             
-            <div id="continueBtnContainer" style="text-align: center; margin-top: 30px; opacity: 0; pointer-events: none; transition: all 0.5s ease">
-                <button class="btn" style="padding: 12px 30px;" onclick="renderRoundIntro()">CONTINUE TO BATTLE</button>
+            <div id="nextPackBtn" style="text-align: center; margin-top: 30px; opacity: 0; pointer-events: none; transition: all 0.5s ease">
+                <button class="btn" style="padding: 12px 30px;" onclick="renderSinglePack()">
+                    ${state.packsOpened === state.requiredDraftCount - 1 ? 'PROCEED TO BATTLE' : 'NEXT PACK'}
+                </button>
             </div>
         </div>
     `);
 };
 
-window.openMiniPack = function(idx) {
-    let wrapper = document.getElementById(`packWrapper-${idx}`);
+window.openSinglePack = function() {
+    let wrapper = document.getElementById('packWrapper');
     if (!wrapper) return;
     let card = wrapper.querySelector('.card');
     
@@ -167,17 +176,12 @@ window.openMiniPack = function(idx) {
     
     setTimeout(() => {
         card.classList.remove('flipped');
-        
         state.packsOpened++;
-        let counter = document.getElementById('packCounter');
-        if (counter) counter.innerText = `${state.packsOpened} / ${state.requiredDraftCount}`;
         
-        if (state.packsOpened === state.requiredDraftCount) {
-            let btnC = document.getElementById('continueBtnContainer');
-            if (btnC) {
-                btnC.style.opacity = '1';
-                btnC.style.pointerEvents = 'auto';
-            }
+        let btnC = document.getElementById('nextPackBtn');
+        if (btnC) {
+            btnC.style.opacity = '1';
+            btnC.style.pointerEvents = 'auto';
         }
     }, 400);
 };
@@ -192,17 +196,26 @@ function renderRoundIntro() {
     let roleText = state.playerRole.toUpperCase();
     let oppRole = state.playerRole === 'batting' ? 'BOWLING' : state.playerRole === 'bowling' ? 'BATTING' : 'ALL-ROUNDER';
     
+    let handHtml = state.playerHand.map(c => `
+        <div class="card-wrapper" style="flex: 0 0 140px; transform: scale(0.9); transform-origin: top left;">
+            ${createCardHTML(c, state.playerRole, false, '')}
+        </div>
+    `).join('');
+
     renderScreen(`
-        <div class="screen">
-            <div class="full-center" style="animation: slideUp 0.5s ease">
+        <div class="screen view-start">
+            <div style="animation: slideUp 0.5s ease; width: 100%; display: flex; flex-direction: column; align-items: center">
                 <h3>ROUND ${state.round}</h3>
-                <h1 style="color: var(--accent); margin: 20px 0; font-size: 2.2rem;">YOU ARE ${roleText}</h1>
-                <p style="margin-bottom: 30px; color: var(--text-muted)">The AI is playing as ${oppRole}</p>
-                <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 30px; width: 85%; text-align: left; border: 1px solid var(--card-border)">
-                    <div style="font-weight: 700; margin-bottom: 10px; color: var(--accent)">YOUR DECK:</div>
-                    ${state.playerHand.map(c => `<div>• ${c.name}</div>`).join('')}
+                <h1 style="color: var(--accent); margin: 10px 0; font-size: 2rem;">YOU ARE ${roleText}</h1>
+                <p style="margin-bottom: 20px; color: var(--text-muted)">The AI is playing as ${oppRole}</p>
+                
+                <div style="width: 100%; margin-bottom: 20px; text-align: left;">
+                    <div style="font-weight: 700; margin-bottom: 10px; color: var(--accent); text-align: center">YOUR SQUAD</div>
+                    <div style="display: flex; overflow-x: auto; gap: 15px; padding: 10px; scrollbar-width: none; scroll-behavior: smooth;">
+                        ${handHtml}
+                    </div>
                 </div>
-                <button class="btn" onclick="startTurn()">PLAY TURN 1</button>
+                <button class="btn" style="width: 80%" onclick="startTurn()">PLAY TURN 1</button>
             </div>
         </div>
     `);
@@ -355,14 +368,14 @@ function renderTurnReveal() {
                 <div id="vsOrb" class="clash-center-vs">VS</div>
                 
                 <div id="pClashCard" class="clash-card-container clash-player-start">
-                     <div class="card-wrapper" style="transform: scale(0.85); width: 100%">
+                     <div class="card-wrapper" style="width: 100%">
                          ${createCardHTML(pCard, state.playerRole, false, state.battleStat.playerKey)}
                          <div style="text-align:center; font-weight:bold; color:var(--accent); margin-top: 5px; font-size: 0.9rem">YOU (${pVal})</div>
                      </div>
                 </div>
                 
                 <div id="aiClashCard" class="clash-card-container clash-ai-start">
-                     <div class="card-wrapper" style="transform: scale(0.85); width: 100%">
+                     <div class="card-wrapper" style="width: 100%">
                          ${createCardHTML(aiCard, aiRole, true, state.battleStat.aiKey)} 
                          <div style="text-align:center; font-weight:bold; color:var(--text-muted); margin-top: 5px; font-size: 0.9rem">AI (${aVal})</div>
                      </div>
